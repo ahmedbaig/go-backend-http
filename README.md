@@ -80,11 +80,26 @@ Return `httpx.E(code)` (optionally `.WithMessage`, `.WithCustomerActions`, `.Wit
 
 Built-in codes cover 400 (`E400-1` bad request, `E400-2` validation, `E400-3` invalid JSON), 401, 403, 404 (`E404-1` resource, `E404-2` route), 405, 408, 409, 410, 413, 415, 429, 500, 502, 503 and 504. Add your own with `httpx.Register("E422-1", httpx.Definition{...})`. Any error that isn't an `*httpx.Error` becomes `E500-1`: the client gets a generic message, the real error is logged with the request ID. A request that runs past its deadline becomes `E408`.
 
+## Auth
+
+The gateway authenticates and passes the user as JSON in `X-User` ([go-backend-types](https://github.com/ahmedbaig/go-backend-types) `types.User`).
+
+```go
+v1 := app.Group("/api/v1", httpx.RequireUser())
+v1.Get("/admin/stats", h, httpx.RequireRole("admin"))
+v1.Get("/beta", h, httpx.RequireFeature("beta"))
+
+u, err := httpx.User(ctx)   // 401 error if there is no user
+```
+
+`RequireUser` returns `E401-1` when the header is missing or invalid and adds `userId` to every log line for the request.
+
 ## Other helpers
 
 | | |
 |---|---|
 | `RequestID(ctx)`, `CorrelationID(ctx)`, `LoggerFrom(ctx)` | read request-scoped values |
+| `IDs(ctx)` | request and correlation IDs, pass to `client.WithIDs` from go-backend-types |
 | `NewClient(transport)` | `*http.Client` that forwards `X-Correlation-ID` to downstream services |
 | `ClientIP(r, trusted)` | client address, honouring `X-Forwarded-For` only from trusted proxies (loopback by default) |
 | `OK`, `Created`, `NoContent`, `JSON`, `WriteError` | response writers |

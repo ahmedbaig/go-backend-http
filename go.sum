@@ -2,6 +2,8 @@ github.com/ahmedbaig/go-backend-logging v0.1.0 h1:eMdktVVLrGuFyg9Lfpucexvecf7KnF
 github.com/ahmedbaig/go-backend-logging v0.1.0/go.mod h1:/24/c56lv+iFyGX7xuia4nrNJ3SMAw+BcetI+fiyr6M=
 github.com/ahmedbaig/go-backend-monitoring v0.1.0 h1:JA/2zlQq17G7rkLy2OzMcQNLieir2wHLFvUofR9Eqdk=
 github.com/ahmedbaig/go-backend-monitoring v0.1.0/go.mod h1:gIch5aze6r2LUC/ie33QGJy45bgL9wtnWirfKd+yOgY=
+github.com/ahmedbaig/go-backend-types v0.1.0 h1:eyFrOL2v4ll5ma5vtm4YByZS17FeMqoPoZu+t3vjprU=
+github.com/ahmedbaig/go-backend-types v0.1.0/go.mod h1:h8c8E7IwED0wVlPkIqSuO2gHYXwfFWxqMC0CamKqLlM=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

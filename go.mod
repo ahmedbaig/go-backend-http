@@ -5,6 +5,7 @@ go 1.27.3
 require (
 	github.com/ahmedbaig/go-backend-logging v0.1.0
 	github.com/ahmedbaig/go-backend-monitoring v0.1.0
+	github.com/ahmedbaig/go-backend-types v0.1.0
 	github.com/go-playground/validator/v10 v10.30.6
 	github.com/google/uuid v1.6.0
 	golang.org/x/time v0.16.0
