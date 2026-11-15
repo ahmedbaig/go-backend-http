@@ -228,6 +228,13 @@ func setValue(fv reflect.Value, vals []string) error {
 	return nil
 }
 
+func Validate(v any) error {
+	if err := validate.Struct(v); err != nil {
+		return validationError(err)
+	}
+	return nil
+}
+
 func validationError(err error) error {
 	var ves validator.ValidationErrors
 	if !errors.As(err, &ves) {

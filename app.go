@@ -46,6 +46,8 @@ type App struct {
 	onStop    []func(context.Context) error
 	handler   http.Handler
 	buildOnce sync.Once
+	drain     chan struct{}
+	drainOnce sync.Once
 }
 
 func New(o Options) *App {
@@ -76,8 +78,12 @@ func New(o Options) *App {
 	if o.TrustedProxies == nil {
 		o.TrustedProxies = LoopbackOnly
 	}
-	return &App{opts: o, mux: http.NewServeMux(), log: o.Logger.With(slog.String("component", "http"))}
+	return &App{opts: o, mux: http.NewServeMux(), log: o.Logger.With(slog.String("component", "http")), drain: make(chan struct{})}
 }
+
+func (a *App) Draining() <-chan struct{} { return a.drain }
+
+func (a *App) startDrain() { a.drainOnce.Do(func() { close(a.drain) }) }
 
 func (a *App) Mux() *http.ServeMux { return a.mux }
 
@@ -148,7 +154,7 @@ func (a *App) Handler() http.Handler {
 }
 
 func (a *App) Server(addr string) *http.Server {
-	return &http.Server{
+	srv := &http.Server{
 		Addr:              addr,
 		Handler:           a.Handler(),
 		ReadTimeout:       a.opts.ReadTimeout,
@@ -157,6 +163,8 @@ func (a *App) Server(addr string) *http.Server {
 		IdleTimeout:       a.opts.IdleTimeout,
 		ErrorLog:          slog.NewLogLogger(a.log.Handler(), slog.LevelWarn),
 	}
+	srv.RegisterOnShutdown(a.startDrain)
+	return srv
 }
 
 func (a *App) Run(ctx context.Context, addr string) error {

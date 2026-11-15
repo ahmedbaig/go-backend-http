@@ -105,6 +105,25 @@ u, err := httpx.User(ctx)   // 401 error if there is no user
 | `OK`, `Created`, `NoContent`, `JSON`, `WriteError` | response writers |
 | `Chain`, `RequestIDs`, `AccessLog`, `Recover`, `SecurityHeaders`, `CORS`, `RateLimit`, `Timeout`, `BodyLimit` | the middleware, usable on their own |
 
+## Server-sent events
+
+```go
+v1.Get("/events", httpx.HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
+	s, err := sse.Start(w)
+	if err != nil {
+		return err
+	}
+	events := broker.Subscribe(r.Context(), topics, sse.LastEventID(r))
+	return sse.Serve(r.Context(), s, events, sse.Options{Heartbeat: 15 * time.Second, Done: app.Draining()})
+}))
+```
+
+`sse.Start` sets the stream headers (including `X-Accel-Buffering: no` for nginx) and clears the write deadline. `Serve` writes events, sends `: ping` comments on the heartbeat, and returns when the client leaves, the channel closes, or the server starts shutting down (`app.Draining()`), so open streams never hold up a deploy. Requests with `Accept: text/event-stream` skip the request timeout.
+
+nginx in front needs `proxy_buffering off;` and a long `proxy_read_timeout` on the stream location.
+
+`httpx.Validate(v)` runs the same struct validation as `Bind` and returns the same field errors, for input that doesn't arrive over HTTP (gRPC, queues).
+
 ## License
 
 MIT
