@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ahmedbaig/go-backend-logging"
-	"github.com/ahmedbaig/go-backend-monitoring"
+	logging "github.com/ahmedbaig/go-backend-logging"
+	monitoring "github.com/ahmedbaig/go-backend-monitoring"
 )
 
 type createItem struct {
@@ -221,6 +221,26 @@ func TestAccessLogHasRoute(t *testing.T) {
 	do(t, h, "GET", "/healthz", "", nil)
 	if strings.Contains(logs.String(), "/healthz") {
 		t.Fatal("health check should not be access-logged")
+	}
+}
+
+func TestAccessLogSeesUserFromInnerMiddleware(t *testing.T) {
+	var logs bytes.Buffer
+	app := newApp(t, &logs)
+	app.Group("/api/v1", RequireUser()).Get("/me", HandlerFunc(func(w http.ResponseWriter, r *http.Request) error {
+		JSON(w, 200, map[string]string{"ok": "yes"})
+		return nil
+	}))
+	do(t, app.Handler(), "GET", "/api/v1/me", "", map[string]string{"X-User": `{"id":42,"email":"a@b.c"}`, "User-Agent": "probe/1"})
+	var access map[string]any
+	for _, line := range strings.Split(strings.TrimSpace(logs.String()), "\n") {
+		var m map[string]any
+		if json.Unmarshal([]byte(line), &m) == nil && m["route"] == "GET /api/v1/me" {
+			access = m
+		}
+	}
+	if access["userId"] != float64(42) || access["email"] != "a@b.c" || access["userAgent"] != "probe/1" || access["ip"] == nil {
+		t.Fatalf("access log misses request user/client: %v", access)
 	}
 }
 

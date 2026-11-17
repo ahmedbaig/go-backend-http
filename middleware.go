@@ -86,11 +86,20 @@ func RequestIDs(log *slog.Logger) Middleware {
 			}
 			w.Header().Set(HeaderRequestID, rid)
 			w.Header().Set(HeaderCorrelationID, cid)
-			ctx := WithIDs(r.Context(), rid, cid)
+			ctx := WithIDs(logging.WithScope(r.Context()), rid, cid)
 			ctx = logging.WithAttrs(ctx, slog.String("requestId", rid), slog.String("correlationId", cid))
 			if log != nil {
 				ctx = WithLogger(ctx, log)
 			}
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func ClientInfo(trusted []netip.Prefix) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := logging.WithAttrs(r.Context(), slog.String("ip", ClientIP(r, trusted)), slog.String("userAgent", r.UserAgent()))
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

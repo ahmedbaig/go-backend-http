@@ -24,7 +24,7 @@ func RequireUser() Middleware {
 				return
 			}
 			ctx := types.WithUser(r.Context(), u)
-			ctx = logging.WithAttrs(ctx, slog.Int64("userId", u.ID))
+			ctx = logging.WithAttrs(ctx, slog.Int64("userId", u.ID), slog.String("email", u.Email), slog.Any("roles", u.Roles))
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

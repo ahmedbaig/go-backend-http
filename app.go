@@ -135,6 +135,7 @@ func (a *App) Handler() http.Handler {
 		mws := []Middleware{
 			monitoring.TrackRoute,
 			RequestIDs(a.opts.Logger),
+			ClientInfo(a.opts.TrustedProxies),
 			Recover(),
 			AccessLog(nil),
 			a.opts.Metrics.Middleware(nil),
